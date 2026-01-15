@@ -83,6 +83,10 @@ io.on('connection', (socket) => {
 });
 
 const PORT = process.env.PORT || 3000;
+app.get('/', (req, res) => {
+    res.send('Serverul Whist este activ!');
+});
 server.listen(PORT, () => {
     console.log(`Serverul rulează pe portul ${PORT}`);
+
 });
