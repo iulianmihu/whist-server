@@ -77,8 +77,26 @@ io.on('connection', (socket) => {
     });
 
     socket.on('disconnect', () => {
-        console.log('Jucător deconectat');
-        // Logică simplificată: momentan nu ștergem camera ca să nu stricăm jocul dacă cineva dă refresh
+        // Căutăm în ce cameră era jucătorul care a ieșit
+        for (let roomCode in rooms) {
+            let room = rooms[roomCode];
+            // Eliminăm jucătorul din lista camerei
+            room.players = room.players.filter(p => p.id !== socket.id);
+            
+            // Dacă nu mai e nimeni în cameră, o ștergem de tot după 30 de secunde
+            // (lăsăm 30 de secunde în caz că omul a dat doar un refresh la pagină)
+            if (room.players.length === 0) {
+                setTimeout(() => {
+                    if (rooms[roomCode] && rooms[roomCode].players.length === 0) {
+                        delete rooms[roomCode];
+                        console.log(`Camera ${roomCode} a fost ștearsă.`);
+                    }
+                }, 30000); 
+            } else {
+                // Dacă mai sunt jucători, îi anunțăm că cineva a ieșit
+                io.to(roomCode).emit('updateLobby', room.players);
+            }
+        }
     });
 });
 
@@ -90,4 +108,5 @@ server.listen(PORT, () => {
     console.log(`Serverul rulează pe portul ${PORT}`);
 
 });
+
 
